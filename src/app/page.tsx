@@ -1,70 +1,73 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+
+import { Button } from "@/components/ui/button";
+import { useAppContext } from "@/contexts/AppContext";
+
+export default function HomePage() {
+  const { user } = useAppContext();
+
   return (
-    <div className="grid min-h-screen grid-rows-[20px_1fr_20px] items-center justify-items-center gap-16 p-8 pb-20 font-[family-name:var(--font-geist-sans)] sm:p-20">
-      <main className="row-start-2 flex flex-col items-center gap-[32px] sm:items-start">
-        <Image className="dark:invert" src="/next.svg" alt="Next.js logo" width={180} height={38} priority />
-        <ol className="list-inside list-decimal text-center font-[family-name:var(--font-geist-mono)] text-sm/6 sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="rounded bg-black/[.05] px-1 py-0.5 font-[family-name:var(--font-geist-mono)] font-semibold dark:bg-white/[.06]">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-gradient-to-b from-blue-900 to-purple-900 text-white">
+      <div className="container mx-auto px-4 py-8">
+        <main className="flex flex-col items-center justify-center text-center">
+          <h1 className="mb-6 text-5xl font-bold">Welcome to LifeQuest RPG</h1>
+          <p className="mb-8 max-w-2xl text-xl">
+            Transform your daily habits into an epic adventure. Complete quests, earn rewards, and level up your real
+            life!
+          </p>
 
-        <div className="flex flex-col items-center gap-4 sm:flex-row">
-          <a
-            className="bg-foreground text-background flex h-10 items-center justify-center gap-2 rounded-full border border-solid border-transparent px-4 text-sm font-medium transition-colors hover:bg-[#383838] sm:h-12 sm:w-auto sm:px-5 sm:text-base dark:hover:bg-[#ccc]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image className="dark:invert" src="/vercel.svg" alt="Vercel logomark" width={20} height={20} />
-            Deploy now
-          </a>
-          <a
-            className="flex h-10 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-4 text-sm font-medium transition-colors hover:border-transparent hover:bg-[#f2f2f2] sm:h-12 sm:w-auto sm:px-5 sm:text-base md:w-[158px] dark:border-white/[.145] dark:hover:bg-[#1a1a1a]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex flex-wrap items-center justify-center gap-[24px]">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/file.svg" alt="File icon" width={16} height={16} />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/window.svg" alt="Window icon" width={16} height={16} />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image aria-hidden src="/globe.svg" alt="Globe icon" width={16} height={16} />
-          Go to nextjs.org →
-        </a>
-      </footer>
+          <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
+              <h2 className="mb-4 text-2xl font-bold">Build Habits</h2>
+              <p className="mb-4">Create daily habits that transform into quests in your adventure.</p>
+            </div>
+
+            <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
+              <h2 className="mb-4 text-2xl font-bold">Explore Worlds</h2>
+              <p className="mb-4">Journey through different realms, each with unique challenges and rewards.</p>
+            </div>
+
+            <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
+              <h2 className="mb-4 text-2xl font-bold">Earn Rewards</h2>
+              <p className="mb-4">Claim real-life rewards for your in-game achievements.</p>
+            </div>
+          </div>
+
+          <div className="flex gap-4">
+            {user.level > 1 ? (
+              <Link href="/adventure">
+                <Button size="lg" className="bg-green-600 hover:bg-green-700">
+                  Continue Adventure
+                </Button>
+              </Link>
+            ) : (
+              <Link href="/dashboard">
+                <Button size="lg" className="bg-blue-600 hover:bg-blue-700">
+                  Start Your Quest
+                </Button>
+              </Link>
+            )}
+
+            <Link href="/game">
+              <Button size="lg" variant="outline">
+                Try Mini-Game
+              </Button>
+            </Link>
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
+  return (
+    <div className="rounded-xl bg-white/10 p-6 backdrop-blur-sm">
+      <div className="mb-4 text-4xl">{icon}</div>
+      <h3 className="mb-2 text-xl font-bold">{title}</h3>
+      <p className="text-blue-100">{description}</p>
     </div>
   );
 }
