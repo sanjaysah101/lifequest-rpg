@@ -3,6 +3,7 @@
 import { useState } from "react";
 
 import AddHabitModal from "@/components/AddHabitModal";
+import HabitCalendar from "@/components/HabitCalendar";
 import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { useAppContext } from "@/contexts/AppContext";
@@ -86,6 +87,7 @@ export default function HabitsPage() {
                       {completed ? "Completed" : "Complete"}
                     </Button>
                   </div>
+                  <HabitCalendar habit={habit} />
                 </div>
               );
             })}

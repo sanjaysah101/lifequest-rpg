@@ -6,7 +6,7 @@ import { GameState, Habit, Reward, User } from "@/lib/models";
 import * as storage from "@/lib/storage";
 
 // Define the context type
-interface AppContextType {
+export interface AppContextType {
   user: User;
   habits: Habit[];
   rewards: Reward[];
@@ -18,6 +18,8 @@ interface AppContextType {
   addReward: (reward: Omit<Reward, "id" | "createdAt" | "redeemedDates">) => void;
   redeemReward: (rewardId: string) => boolean;
   updateGameState: (gameState: GameState) => void;
+  updateHabits: (habits: Habit[]) => void;
+  updateRewards: (rewards: Reward[]) => void;
 }
 
 // Create the context with a default value
@@ -43,12 +45,34 @@ export function AppProvider({ children }: { children: ReactNode }) {
     };
 
     loadData();
+
+    // Add event listener for storage changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key && e.key.startsWith("lifequest_")) {
+        loadData(); // Reload data when storage changes
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
   // Update user data
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
     storage.saveUserData(updatedUser);
+  };
+
+  // Update habits data
+  const updateHabits = (updatedHabits: Habit[]) => {
+    setHabits(updatedHabits);
+    storage.saveHabits(updatedHabits);
+  };
+
+  // Update rewards data
+  const updateRewards = (updatedRewards: Reward[]) => {
+    setRewards(updatedRewards);
+    storage.saveRewards(updatedRewards);
   };
 
   // Add a new habit
@@ -105,6 +129,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         addReward,
         redeemReward,
         updateGameState,
+        updateHabits,
+        updateRewards,
       }}
     >
       {children}
