@@ -123,7 +123,6 @@ export default function AdventurePage() {
       return world;
     });
 
-    console.log(updatedWorldData);
     updateWorldData(updatedWorldData);
   };
 

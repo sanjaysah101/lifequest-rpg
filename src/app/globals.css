@@ -125,15 +125,16 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   /* Enhanced dialog styling */
   [data-slot="dialog-content"] {
-    @apply backdrop-blur-sm bg-[var(--modal-bg)] border-[var(--modal-border)];
+    @apply border-[var(--modal-border)] bg-[var(--modal-bg)] backdrop-blur-sm;
     box-shadow: var(--modal-shadow);
   }
-  
+
   /* Form field styling */
-  select, input {
+  select,
+  input {
     @apply focus:border-primary/50 focus:ring-primary/25;
   }
 }

@@ -56,7 +56,6 @@ export default function DataManagement() {
         event.target.value = "";
       } catch (error) {
         setImportError("Failed to import data. Please check the file format.");
-        console.error("Import error:", error);
       }
     };
 

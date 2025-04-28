@@ -3,16 +3,16 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
-import { useAppContext } from "@/contexts/AppContext";
 
 import KnowThyselfWizard from "../../components/KnowThyselfWizard";
+import { useGame } from "../../contexts/GameContext";
+import { User } from "../../lib/models";
 
 export default function GamePage() {
   const gameRef = useRef<HTMLDivElement>(null);
   const gameInstanceRef = useRef<any>(null); // Store the game instance reference
-  const { user, habits, updateUser } = useAppContext();
+  const { user, habits, setUser } = useGame();
   const [collectedPoints, setCollectedPoints] = useState(0);
   const [showSaveButton, setShowSaveButton] = useState(false);
   const [bonusMessage, setBonusMessage] = useState("");
@@ -23,6 +23,7 @@ export default function GamePage() {
   useEffect(() => {
     // Dynamic import of Phaser to avoid SSR issues
     const loadPhaser = async () => {
+      if (!user || !habits) return;
       const Phaser = (await import("phaser")).default;
 
       // Only initialize if the component is mounted
@@ -556,12 +557,14 @@ export default function GamePage() {
         gameInstanceRef.current.destroy(true);
       }
     };
-  }, [habits, user]);
+  }, [chainReactionActive, habits, user]);
 
   // Save points to user account
   const savePoints = () => {
+    if (!user) return;
+
     if (collectedPoints > 0) {
-      const updatedUser = {
+      const updatedUser: User = {
         ...user,
         points: user.points + collectedPoints,
       };
@@ -574,17 +577,18 @@ export default function GamePage() {
         };
       }
 
-      updateUser(updatedUser);
+      setUser(updatedUser);
       setShowSaveButton(false);
       setCollectedPoints(0);
       setBonusMessage("");
     }
   };
 
+  if (!user) return;
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-purple-900 text-white">
       <div className="container mx-auto px-4 py-8">
-        <Header />
         <div className="mb-6 flex items-center justify-between">
           <h1 className="text-3xl font-bold">Game Arena</h1>
           <div className="flex space-x-4">
@@ -616,12 +620,12 @@ export default function GamePage() {
           </div>
 
           {/* Welcome message for new users */}
-          {!user.preferences?.name && (
+          {!user.preferences && (
             <div className="mb-6 rounded-lg border border-green-500 bg-green-900/30 p-4">
               <h2 className="mb-2 text-xl font-semibold text-green-300">Welcome to LifeQuest RPG!</h2>
               <p className="mb-3 text-green-100">
-                Personalize your experience by clicking the "Personalize Your Experience" button above. This will help
-                optimize your rewards and bonuses based on your preferences and daily schedule.
+                Personalize your experience by clicking the &quot;Personalize Your Experience&quot; button above. This
+                will help optimize your rewards and bonuses based on your preferences and daily schedule.
               </p>
               <Button onClick={() => setShowWizard(true)} className="bg-green-600 hover:bg-green-700">
                 Start Personalization Wizard
@@ -711,7 +715,7 @@ export default function GamePage() {
                     setShowSaveButton(false);
                     setCollectedPoints(0);
                     setBonusMessage("");
-                    loadPhaser();
+                    // loadPhaser();
                   }}
                   variant="outline"
                 >
