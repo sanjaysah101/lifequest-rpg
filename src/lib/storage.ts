@@ -1,6 +1,6 @@
 /* eslint-disable no-console */
 // Import all your models
-import { Achievement, GameState, Habit, Quest, Reward, User } from "./models";
+import { Achievement, GameState, Habit, Quest, Reward, User, WorldData } from "./models";
 
 // Storage Keys
 const STORAGE_KEYS = {
@@ -10,6 +10,7 @@ const STORAGE_KEYS = {
   gameState: "lifeBalance_gameState",
   quests: "lifeBalance_quests",
   achievements: "lifeBalance_achievements",
+  worldData: "lifeBalance_worldData",
 } as const;
 
 // Generic Storage Functions
@@ -105,4 +106,22 @@ export function loadAchievements(): Achievement[] | null {
 // Utility to reset all data
 export function resetAllData() {
   clearAllStorage();
+}
+
+// Save WorldData
+export function saveWorldData(worldData: WorldData[]) {
+  saveToStorage<WorldData[]>(STORAGE_KEYS.worldData, worldData);
+}
+
+// Load WorldData
+export function loadWorldData(): WorldData[] | null {
+  return loadFromStorage<WorldData[]>(STORAGE_KEYS.worldData);
+}
+
+// Utility to fetch a single world
+export function getWorldById(worldId: string): WorldData | null {
+  const worldData = loadWorldData();
+  if (!worldData) return null;
+
+  return worldData.find((world) => world.id === worldId) || null;
 }

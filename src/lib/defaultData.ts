@@ -13,6 +13,7 @@ import {
   RewardCategory,
   RewardPreference,
   User,
+  WorldData,
 } from "./models";
 
 export const defaultUser: User = {
@@ -106,16 +107,6 @@ export const defaultRewards: Reward[] = [
     redeemedDates: [],
   },
 ];
-
-export const defaultGameState: GameState = {
-  characterLevel: 1,
-  achievements: [],
-  lastPlayed: new Date().toISOString(),
-  worldsDiscovered: ["forest"],
-  questsCompleted: [],
-  currentWorld: "forest",
-  isGameInitialized: true,
-};
 
 export const defaultQuests: Quest[] = [
   {
@@ -230,3 +221,100 @@ export const defaultAchievements: Achievement[] = [
     },
   },
 ];
+
+export const defaultWorldData: WorldData[] = [
+  {
+    id: "world-1",
+    name: "Enchanted Forest",
+    description: "A mystical forest filled with ancient wisdom",
+    color: "from-green-900 to-emerald-700",
+    unlockRequirement: 0,
+    isUnlocked: true,
+    quests: [
+      {
+        id: "forest-1",
+        title: "Meditation Grove",
+        description: "Find inner peace by completing a short meditation",
+        task: "Take 3 deep breaths and focus on your breathing for 30 seconds",
+        points: 15,
+        habitCategory: HabitCategory.Wellness,
+        isCompleted: false,
+      },
+      {
+        id: "forest-2",
+        title: "Knowledge Tree",
+        description: "Absorb knowledge from the ancient tree",
+        task: "Write down one thing you learned today",
+        points: 20,
+        habitCategory: HabitCategory.Learning, // <- changed "Growth" to Learning for better enum fit
+        isCompleted: false,
+      },
+    ],
+  },
+  {
+    id: "world-2",
+    name: "Mystic Mountains",
+    description: "Challenging peaks that test your resolve",
+    color: "from-slate-800 to-blue-900",
+    unlockRequirement: 2,
+    isUnlocked: false,
+    quests: [
+      {
+        id: "mountain-1",
+        title: "Summit Challenge",
+        description: "Reach the peak through perseverance",
+        task: "Do 10 push-ups or a 1-minute plank",
+        points: 25,
+        habitCategory: HabitCategory.Health,
+        isCompleted: false,
+      },
+      {
+        id: "mountain-2",
+        title: "Eagle's Vision",
+        description: "Gain clarity from the mountain top",
+        task: "Set one clear goal for tomorrow",
+        points: 20,
+        habitCategory: HabitCategory.Productivity,
+        isCompleted: false,
+      },
+    ],
+  },
+  {
+    id: "world-3",
+    name: "Serene Ocean",
+    description: "Vast waters of creativity and reflection",
+    color: "from-blue-900 to-cyan-800",
+    unlockRequirement: 4,
+    isUnlocked: false,
+    quests: [
+      {
+        id: "ocean-1",
+        title: "Tide Pools of Creativity",
+        description: "Discover creative inspiration in the pools",
+        task: "Sketch or write something creative for 5 minutes",
+        points: 30,
+        habitCategory: HabitCategory.Learning, // <- again changed from "Growth" to match enums
+        isCompleted: false,
+      },
+      {
+        id: "ocean-2",
+        title: "Ocean Cleanse",
+        description: "Purify your space like the ocean cleanses shores",
+        task: "Tidy up your immediate surroundings for 2 minutes",
+        points: 15,
+        habitCategory: HabitCategory.Productivity,
+        isCompleted: false,
+      },
+    ],
+  },
+];
+
+export const defaultGameState: GameState = {
+  characterLevel: 1,
+  achievements: [],
+  lastPlayed: new Date().toISOString(),
+  worldsDiscovered: ["forest"],
+  questsCompleted: [],
+  currentWorld: defaultWorldData[0],
+  isGameInitialized: true,
+};

@@ -2,8 +2,17 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
-import { Achievement, GameState, Habit, Reward, User } from "@/lib/models";
-import { loadAchievements, loadRewards, saveGameState, saveHabits, saveRewards, saveUser } from "@/lib/storage";
+import { Achievement, GameState, Habit, Reward, User, WorldData } from "@/lib/models";
+import {
+  loadAchievements,
+  loadRewards,
+  loadWorldData,
+  saveGameState,
+  saveHabits,
+  saveRewards,
+  saveUser,
+  saveWorldData,
+} from "@/lib/storage";
 import { discoverWorld, getGameState } from "@/services/gameService";
 import { addHabit, completeHabit as completeHabitService, getHabits } from "@/services/habitService";
 import { redeemReward } from "@/services/rewardService";
@@ -18,18 +27,21 @@ interface GameContextType {
   habits: ReturnType<typeof getHabits>;
   setHabits: (habits: ReturnType<typeof getHabits>) => void;
   gameState: ReturnType<typeof getGameState>;
-  setGameState: (gameState: ReturnType<typeof getGameState>) => void;
+  setGameState: (gameState: GameState) => void;
+  worldData: ReturnType<typeof loadWorldData>;
   rewards: ReturnType<typeof loadRewards>;
   setRewards: (rewards: ReturnType<typeof loadRewards>) => void;
   achievements: ReturnType<typeof loadAchievements>;
   isLoading: boolean;
   reload: () => void;
   addHabit: typeof addHabit;
+  updateCurrentWorld: (newWorld: WorldData) => void;
   completeHabit: (habitId: string) => void;
   addExperience: typeof addExperience;
   incrementStreak: typeof incrementStreak;
   redeemReward: typeof redeemReward;
   discoverWorld: typeof discoverWorld;
+  updateWorldData: (newWorldData: WorldData[]) => void;
 }
 
 const GameContext = createContext<GameContextType | undefined>(undefined);
@@ -40,6 +52,7 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [rewards, setRewards] = useState<Reward[] | null>(null);
   const [achievements, setAchievements] = useState<Achievement[] | null>(null);
+  const [worldData, setWorldData] = useState<WorldData[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   const reload = useCallback(() => {
@@ -47,6 +60,9 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     setHabits(getHabits());
     setGameState(getGameState());
     setRewards(loadRewards());
+    setAchievements(loadAchievements());
+    setWorldData(loadWorldData());
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -102,6 +118,14 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user, habits, rewards]);
 
+  const updateCurrentWorld = (newWorld: WorldData) => {
+    setGameState((prev) => ({ ...prev!, currentWorld: newWorld }));
+  };
+
+  const updateWorldData = (newWorldData: WorldData[]) => {
+    saveWorldData(newWorldData);
+  };
+
   const completeHabit = (habitId: string) => {
     if (!user || !habits) return;
     completeHabitService(habitId);
@@ -128,15 +152,18 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
         user,
         setUser,
         habits,
+        updateCurrentWorld,
         setHabits,
         gameState,
         setGameState,
         rewards,
         setRewards,
+        worldData,
         achievements,
         isLoading,
         reload,
         addHabit,
+        updateWorldData,
         completeHabit,
         addExperience,
         incrementStreak,

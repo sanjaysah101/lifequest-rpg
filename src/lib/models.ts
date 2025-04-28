@@ -137,7 +137,7 @@ export interface GameState {
   lastPlayed: string;
   worldsDiscovered: string[];
   questsCompleted: string[];
-  currentWorld: string;
+  currentWorld: WorldData;
   isGameInitialized: boolean;
 }
 
@@ -196,16 +196,18 @@ export interface WorldQuest {
   description: string;
   task: string;
   points: number;
-  habitCategory: string;
+  habitCategory: HabitCategory; // Prefer HabitCategory, fallback to string for flexibility
+  isCompleted: boolean;
 }
 
-export interface GameState {
-  characterLevel: number;
-  achievements: string[];
-  lastPlayed: string;
-  worldsDiscovered: string[];
-  questsCompleted: string[];
-  currentWorld: string;
+export interface WorldData {
+  id: string;
+  name: string;
+  description: string;
+  color: string;
+  unlockRequirement: number;
+  quests: WorldQuest[];
+  isUnlocked: boolean;
 }
 
 export interface Achievement {

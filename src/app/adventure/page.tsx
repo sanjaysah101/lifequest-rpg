@@ -1,160 +1,52 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { MapIcon, SparklesIcon, TrophyIcon } from "lucide-react";
+import { toast } from "sonner";
 
-import Header from "@/components/Header";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useAppContext } from "@/contexts/AppContext";
 
-// Worlds data
-const worlds = {
-  forest: {
-    name: "Enchanted Forest",
-    description: "A mystical forest filled with ancient wisdom",
-    background: "url('/images/forest-bg.jpg')",
-    color: "from-green-900 to-emerald-700",
-    unlockRequirement: 0, // Level required to unlock
-    quests: [
-      {
-        id: "forest-1",
-        title: "Meditation Grove",
-        description: "Find inner peace by completing a short meditation",
-        task: "Take 3 deep breaths and focus on your breathing for 30 seconds",
-        points: 15,
-        habitCategory: "Wellness",
-      },
-      {
-        id: "forest-2",
-        title: "Knowledge Tree",
-        description: "Absorb knowledge from the ancient tree",
-        task: "Write down one thing you learned today",
-        points: 20,
-        habitCategory: "Growth",
-      },
-    ],
-  },
-  mountain: {
-    name: "Mystic Mountains",
-    description: "Challenging peaks that test your resolve",
-    background: "url('/images/mountain-bg.jpg')",
-    color: "from-slate-800 to-blue-900",
-    unlockRequirement: 2, // Level required to unlock
-    quests: [
-      {
-        id: "mountain-1",
-        title: "Summit Challenge",
-        description: "Reach the peak through perseverance",
-        task: "Do 10 push-ups or a 1-minute plank",
-        points: 25,
-        habitCategory: "Health",
-      },
-      {
-        id: "mountain-2",
-        title: "Eagle's Vision",
-        description: "Gain clarity from the mountain top",
-        task: "Set one clear goal for tomorrow",
-        points: 20,
-        habitCategory: "Productivity",
-      },
-    ],
-  },
-  ocean: {
-    name: "Serene Ocean",
-    description: "Vast waters of creativity and reflection",
-    background: "url('/images/ocean-bg.jpg')",
-    color: "from-blue-900 to-cyan-800",
-    unlockRequirement: 4, // Level required to unlock
-    quests: [
-      {
-        id: "ocean-1",
-        title: "Tide Pools of Creativity",
-        description: "Discover creative inspiration in the pools",
-        task: "Sketch or write something creative for 5 minutes",
-        points: 30,
-        habitCategory: "Growth",
-      },
-      {
-        id: "ocean-2",
-        title: "Ocean Cleanse",
-        description: "Purify your space like the ocean cleanses shores",
-        task: "Tidy up your immediate surroundings for 2 minutes",
-        points: 15,
-        habitCategory: "Productivity",
-      },
-    ],
-  },
-};
+import { useGame } from "../../contexts/GameContext";
+import { WorldData } from "../../lib/models";
 
 export default function AdventurePage() {
-  const { user, updateUser, updateGameState, gameState } = useAppContext();
-  const worldRef = useRef<HTMLDivElement>(null);
-  const [currentWorld, setCurrentWorld] = useState(gameState.currentWorld || "forest");
+  const { user, gameState, setGameState, addExperience, worldData, updateCurrentWorld, updateWorldData } = useGame();
   const [showQuest, setShowQuest] = useState(false);
   const [currentQuest, setCurrentQuest] = useState<any>(null);
   const [questCompleted, setQuestCompleted] = useState(false);
-  const [notification, setNotification] = useState("");
-  const [questHistory, setQuestHistory] = useState<string[]>(gameState.questsCompleted || []);
-  const [worldsUnlocked, setWorldsUnlocked] = useState<string[]>(gameState.worldsDiscovered || ["forest"]);
+  const [questHistory, setQuestHistory] = useState<string[]>(gameState?.questsCompleted || []);
+  // const [worldsUnlocked, setWorldsUnlocked] = useState<string[]>(gameState?.worldsDiscovered || ["forest"]);
   const [questAnimation, setQuestAnimation] = useState("");
-
-  // Handle parallax effect
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!worldRef.current) return;
-
-      const { clientX, clientY } = e;
-      const { innerWidth, innerHeight } = window;
-
-      // Calculate parallax effect
-      const moveX = (clientX / innerWidth - 0.5) * 20;
-      const moveY = (clientY / innerHeight - 0.5) * 20;
-
-      worldRef.current.style.transform = `translate(${-moveX}px, ${-moveY}px)`;
-    };
-
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
 
   // Check for world unlocks when user level changes
   useEffect(() => {
     const checkWorldUnlocks = () => {
-      Object.entries(worlds).forEach(([worldKey, worldData]) => {
-        if (!worldsUnlocked.includes(worldKey) && user.level >= worldData.unlockRequirement) {
-          const newUnlocked = [...worldsUnlocked, worldKey];
-          setWorldsUnlocked(newUnlocked);
+      if (!worldData) return;
 
-          // Update game state
-          const updatedGameState = {
-            ...gameState,
-            worldsDiscovered: newUnlocked,
-          };
-          updateGameState(updatedGameState);
-
-          // Show notification
-          setNotification(`🌟 New world unlocked: ${worldData.name}!`);
-          setTimeout(() => setNotification(""), 3000);
+      worldData.forEach((world) => {
+        if (world.isUnlocked) {
+          toast(`🌟 New world unlocked: ${world.name}!`, {
+            description: "Sunday, December 03, 2023 at 9:00 AM",
+          });
         }
       });
     };
 
     checkWorldUnlocks();
-  }, [user.level, worldsUnlocked, gameState, updateGameState]);
+  }, [worldData]);
 
   // Handle quest completion
   const completeQuest = () => {
-    if (!currentQuest) return;
+    if (!currentQuest || !user || !gameState) return;
     closeQuest();
 
     // Check if quest already completed
     if (questHistory.includes(currentQuest.id)) {
-      setNotification("You've already completed this quest!");
-      setTimeout(() => setNotification(""), 3000);
+      toast.warning("You've already completed this quest!");
       return;
     }
 
@@ -162,47 +54,26 @@ export default function AdventurePage() {
     const streakBonus = Math.floor(user.streakDays * 0.1 * currentQuest.points);
     const totalPoints = currentQuest.points + streakBonus;
 
-    // Update user points
-    const updatedUser = {
-      ...user,
-      points: user.points + totalPoints,
-      experience: user.experience + totalPoints,
-    };
-
-    // Level up if enough experience
-    if (updatedUser.experience >= updatedUser.nextLevelAt) {
-      updatedUser.level += 1;
-      updatedUser.nextLevelAt = Math.floor(updatedUser.nextLevelAt * 1.5);
-      setNotification(`🎉 Level Up! You are now level ${updatedUser.level}!`);
-    } else {
-      setNotification(
-        streakBonus > 0
-          ? `✨ Earned ${currentQuest.points} points + ${streakBonus} streak bonus!`
-          : `✨ Earned ${currentQuest.points} points!`
-      );
-    }
+    // Add experience using the context method
+    addExperience(totalPoints);
 
     // Update quest history
     const newQuestHistory = [...questHistory, currentQuest.id];
     setQuestHistory(newQuestHistory);
 
-    // Update game state
-    const updatedGameState = {
-      ...gameState,
-      questsCompleted: newQuestHistory,
-      currentWorld: currentWorld,
-    };
+    // Show notification
+    if (user.experience + totalPoints >= user.nextLevelAt) {
+      toast.success(`🎉 Level Up! You are now level ${user.level + 1}!`);
+    } else {
+      if (streakBonus > 0) {
+        toast.success(`✨ Earned ${currentQuest.points} points + ${streakBonus} streak bonus!`);
+      } else {
+        toast.success(`✨ Earned ${currentQuest.points} points!`);
+      }
+    }
 
-    // Apply updates
-    updateUser(updatedUser);
-    updateGameState(updatedGameState);
     setQuestCompleted(true);
     setQuestAnimation("animate-success");
-
-    // Clear notification after 3 seconds
-    setTimeout(() => {
-      setNotification("");
-    }, 3000);
   };
 
   // Start a new quest
@@ -220,51 +91,46 @@ export default function AdventurePage() {
     setQuestCompleted(false);
   };
 
-  // Change world
-  const changeWorld = (world: string) => {
-    if (!worldsUnlocked.includes(world)) {
-      const requiredLevel = worlds[world as keyof typeof worlds].unlockRequirement;
-      setNotification(`🔒 This world unlocks at level ${requiredLevel}`);
-      setTimeout(() => setNotification(""), 3000);
-      return;
+  if (!user || !gameState || !worldData) {
+    return <div className="flex h-screen items-center justify-center">Loading...</div>;
+  }
+
+  const currentWorld = gameState.currentWorld;
+  const worldsDiscovered = worldData.reduce((acc: string[], world) => {
+    if (world.isUnlocked) {
+      acc.push(world.id);
     }
+    return acc;
+  }, []);
 
-    setCurrentWorld(world);
-    closeQuest();
+  const handleQuestCompletion = (worldId: string, questId: string) => {
+    const updatedWorldData: WorldData[] = worldData.map((world) => {
+      if (world.id === worldId) {
+        const updateWorld = {
+          ...world,
+          quests: world.quests.map((quest) => {
+            if (quest.id === questId) {
+              return {
+                ...quest,
+                isCompleted: true,
+              };
+            }
+            return quest;
+          }),
+        };
+        updateCurrentWorld(updateWorld);
+      }
+      return world;
+    });
 
-    // Update game state with current world
-    const updatedGameState = {
-      ...gameState,
-      currentWorld: world,
-    };
-    updateGameState(updatedGameState);
-  };
-
-  // Check if a quest is completed
-  const isQuestCompleted = (questId: string) => {
-    return questHistory.includes(questId);
+    console.log(updatedWorldData);
+    updateWorldData(updatedWorldData);
   };
 
   return (
-    <div
-      className={`min-h-screen bg-gradient-to-b ${worlds[currentWorld as keyof typeof worlds].color} overflow-hidden text-white`}
-    >
-      {/* World background with parallax effect */}
-      <div
-        ref={worldRef}
-        className="absolute inset-0 -mt-5 -ml-5 h-[calc(100%+40px)] w-[calc(100%+40px)] transition-transform duration-200 ease-out"
-        style={{
-          backgroundImage: worlds[currentWorld as keyof typeof worlds].background,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-      />
-
+    <div className={`min-h-screen bg-gradient-to-b ${currentWorld.color} overflow-hidden text-white`}>
       {/* Content overlay */}
       <div className="relative z-10 container mx-auto px-4 py-8">
-        {/* Navigation */}
-        <Header />
-
         {/* Player stats */}
         <div className="mb-8 rounded-lg border border-white/10 bg-black/40 p-6 shadow-lg backdrop-blur-sm">
           <div className="flex items-center justify-between">
@@ -306,13 +172,15 @@ export default function AdventurePage() {
         <div className="mb-8 rounded-lg border border-white/10 bg-black/40 p-6 shadow-lg backdrop-blur-sm transition-all duration-300">
           <div className="flex items-start justify-between">
             <div>
-              <h2 className="mb-2 text-3xl font-bold">{worlds[currentWorld as keyof typeof worlds].name}</h2>
-              <p className="mb-4 text-blue-200">{worlds[currentWorld as keyof typeof worlds].description}</p>
+              <h2 className="mb-2 text-3xl font-bold">{currentWorld.name}</h2>
+              <p className="mb-4 text-blue-200">{currentWorld.description}</p>
             </div>
             <div className="rounded-lg bg-black/30 p-2">
               <div className="flex items-center gap-2">
                 <MapIcon className="h-5 w-5" />
-                <span className="text-sm">Worlds Discovered: {worldsUnlocked.length}/3</span>
+                <span className="text-sm">
+                  Worlds Discovered: {worldsDiscovered.length}/{worldData.length}
+                </span>
               </div>
               <div className="mt-1 flex items-center gap-2">
                 <TrophyIcon className="h-5 w-5" />
@@ -320,29 +188,27 @@ export default function AdventurePage() {
               </div>
             </div>
           </div>
-
           {/* World navigation */}
           <div className="mt-4 flex flex-wrap gap-4">
-            {Object.entries(worlds).map(([key, world]) => (
-              <div key={key} className="group relative">
+            {worldData.map((world) => (
+              <div key={world.id} className="group relative">
                 <Button
-                  variant={currentWorld === key ? "default" : "outline"}
-                  onClick={() => changeWorld(key)}
-                  disabled={!worldsUnlocked.includes(key)}
-                  className={`relative ${!worldsUnlocked.includes(key) ? "opacity-50" : ""}`}
+                  variant={currentWorld.id === world.id ? "default" : "outline"}
+                  onClick={() => updateCurrentWorld(world)}
+                  disabled={!world.isUnlocked}
                 >
-                  {!worldsUnlocked.includes(key) && (
-                    <div className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                      {world.unlockRequirement}
-                    </div>
-                  )}
+                  {/* {!worldData.includes(key) && ( */}
+                  <div className="absolute -top-2 -right-2 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                    {world.unlockRequirement}
+                  </div>
+                  {/* )} */}
                   {world.name}
                 </Button>
-                {!worldsUnlocked.includes(key) && (
-                  <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 rounded bg-black/80 px-3 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
-                    Unlocks at level {world.unlockRequirement}
-                  </div>
-                )}
+                {/* {!worldsUnlocked.includes(key) && ( */}
+                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 -translate-x-1/2 rounded bg-black/80 px-3 py-1 text-xs whitespace-nowrap text-white opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+                  Unlocks at level {world.unlockRequirement}
+                </div>
+                {/* )} */}
               </div>
             ))}
           </div>
@@ -350,33 +216,35 @@ export default function AdventurePage() {
 
         {/* Quests */}
         <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {worlds[currentWorld as keyof typeof worlds].quests.map((quest) => {
-            const completed = isQuestCompleted(quest.id);
+          {currentWorld.quests.map(({ isCompleted, id, description, habitCategory, points, task, title }) => {
             return (
               <div
                 role="button"
-                key={quest.id}
-                className={`rounded-lg border border-white/10 bg-black/40 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 ${completed ? "border-green-500/30 bg-green-900/20" : "cursor-pointer hover:bg-black/50"}`}
-                onClick={() => !completed && startQuest(quest)}
+                key={id}
+                className={`rounded-lg border border-white/10 bg-black/40 p-6 shadow-lg backdrop-blur-sm transition-all duration-300 ${
+                  isCompleted
+                    ? "cursor-not-allowed border-green-500/30 bg-green-900/20 opacity-70"
+                    : "cursor-pointer hover:bg-black/50"
+                }`}
+                onClick={() => !isCompleted && handleQuestCompletion(currentWorld.id, id)}
                 onKeyDown={(e) => {
                   if (e.key !== "Enter") return;
-
-                  !completed && startQuest(quest);
+                  !isCompleted && handleQuestCompletion(currentWorld.id, id);
                 }}
-                tabIndex={0}
+                tabIndex={isCompleted ? -1 : 0}
               >
                 <div className="flex items-start justify-between">
-                  <h3 className="mb-2 text-xl font-bold">{quest.title}</h3>
-                  {completed && <Badge className="bg-green-600">Completed</Badge>}
+                  <h3 className="mb-2 text-xl font-bold">{title}</h3>
+                  {isCompleted && <Badge className="bg-green-600">Completed</Badge>}
                 </div>
-                <p className="mb-4 text-blue-200">{quest.description}</p>
+                <p className="mb-4 text-blue-200">{description}</p>
                 <div className="flex items-center justify-between">
                   <Badge variant="outline" className="bg-blue-900/50">
-                    {quest.habitCategory}
+                    {habitCategory}
                   </Badge>
                   <div className="flex items-center gap-1">
                     <SparklesIcon className="h-4 w-4 text-yellow-300" />
-                    <span className="font-bold text-yellow-300">{quest.points}</span>
+                    <span className="font-bold text-yellow-300">{points}</span>
                   </div>
                 </div>
               </div>
@@ -427,12 +295,7 @@ export default function AdventurePage() {
           </div>
         )}
 
-        {/* Notification */}
-        {notification && (
-          <div className="fixed right-8 bottom-8 animate-bounce rounded-lg border border-white/20 bg-gradient-to-r from-green-600 to-blue-600 px-6 py-3 text-white shadow-lg backdrop-blur-sm">
-            {notification}
-          </div>
-        )}
+        {/* Notification - removed as we're using toast instead */}
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import { Toaster } from "@/components/ui/sonner";
+
 import Header from "../components/Header";
 import { GameProvider } from "../contexts/GameContext";
 import "./globals.css";
@@ -33,6 +35,7 @@ export default function RootLayout({
             <Header />
             {children}
           </div>
+          <Toaster />
         </GameProvider>
       </body>
     </html>
