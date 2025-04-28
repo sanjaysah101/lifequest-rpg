@@ -3,10 +3,13 @@
 import { SparklesIcon, TrophyIcon, ZapIcon } from "lucide-react";
 
 import { Progress } from "@/components/ui/progress";
-import { useAppContext } from "@/contexts/AppContext";
+
+import { useGame } from "../contexts/GameContext";
 
 export default function GameStats() {
-  const { user, habits, gameState } = useAppContext();
+  const { user, habits } = useGame();
+
+  if (!user || !habits) return null;
 
   // Calculate stats
   const completedHabits = habits.reduce((count, habit) => count + (habit.completedDates.length > 0 ? 1 : 0), 0);

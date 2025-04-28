@@ -3,10 +3,15 @@
 import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
-import { useAppContext } from "@/contexts/AppContext";
+
+import { useGame } from "../contexts/GameContext";
 
 export default function HomePage() {
-  const { user } = useAppContext();
+  const { user, isLoading } = useGame();
+
+  if (isLoading) return <div>Loading...</div>;
+
+  if (!user) return <div>User not found</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-purple-900 text-white">
@@ -19,20 +24,15 @@ export default function HomePage() {
           </p>
 
           <div className="mb-12 grid grid-cols-1 gap-8 md:grid-cols-3">
-            <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
-              <h2 className="mb-4 text-2xl font-bold">Build Habits</h2>
-              <p className="mb-4">Create daily habits that transform into quests in your adventure.</p>
-            </div>
-
-            <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
-              <h2 className="mb-4 text-2xl font-bold">Explore Worlds</h2>
-              <p className="mb-4">Journey through different realms, each with unique challenges and rewards.</p>
-            </div>
-
-            <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
-              <h2 className="mb-4 text-2xl font-bold">Earn Rewards</h2>
-              <p className="mb-4">Claim real-life rewards for your in-game achievements.</p>
-            </div>
+            <FeatureCard
+              title="Build Habits"
+              description="Create daily habits that transform into quests in your adventure."
+            />
+            <FeatureCard
+              title="Explore Worlds"
+              description="Journey through different realms, each with unique challenges and rewards."
+            />
+            <FeatureCard title="Earn Rewards" description="Claim real-life rewards for your in-game achievements." />
           </div>
 
           <div className="flex gap-4">
@@ -62,12 +62,11 @@ export default function HomePage() {
   );
 }
 
-function FeatureCard({ title, description, icon }: { title: string; description: string; icon: string }) {
+function FeatureCard({ title, description }: { title: string; description: string }) {
   return (
-    <div className="rounded-xl bg-white/10 p-6 backdrop-blur-sm">
-      <div className="mb-4 text-4xl">{icon}</div>
-      <h3 className="mb-2 text-xl font-bold">{title}</h3>
-      <p className="text-blue-100">{description}</p>
+    <div className="rounded-lg bg-white/10 p-6 backdrop-blur-sm">
+      <h2 className="mb-4 text-2xl font-bold">{title}</h2>
+      <p className="mb-4">{description}</p>
     </div>
   );
 }

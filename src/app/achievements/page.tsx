@@ -1,29 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
-import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { useAppContext } from "@/contexts/AppContext";
-import { Achievement, checkAchievements } from "@/lib/achievements";
+
+import { useGame } from "../../contexts/GameContext";
 
 export default function AchievementsPage() {
-  const { user, habits, rewards } = useAppContext();
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const { achievements } = useGame();
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  useEffect(() => {
-    // Check and update achievements
-    const updatedAchievements = checkAchievements(user, habits, rewards);
-    setAchievements(updatedAchievements);
-  }, [user, habits, rewards]);
+  if (!achievements) return null;
 
   // Filter achievements by category
   const filteredAchievements =
     selectedCategory === "All"
       ? achievements
-      : achievements.filter((a) => a.category === selectedCategory.toLowerCase());
+      : achievements.filter((a) => a.condition.type === selectedCategory.toLowerCase());
 
   // Calculate completion percentage
   const unlockedCount = achievements.filter((a) => a.unlocked).length;
@@ -32,14 +26,12 @@ export default function AchievementsPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-purple-900 text-white">
       <div className="container mx-auto px-4 py-8">
-        <Header />
-
         <main>
           <div className="mb-8">
             <h1 className="text-3xl font-bold">Achievements</h1>
             <p className="mt-2 text-blue-200">
-              You've unlocked {unlockedCount} of {achievements.length} achievements ({Math.floor(completionPercentage)}
-              %)
+              You&apos;ve unlocked {unlockedCount} of {achievements.length} achievements (
+              {Math.floor(completionPercentage)}%)
             </p>
           </div>
 
@@ -74,7 +66,7 @@ export default function AchievementsPage() {
                   <div className="flex items-center gap-3">
                     <div className="text-3xl">{achievement.icon}</div>
                     <div>
-                      <h3 className="text-xl font-bold">{achievement.name}</h3>
+                      <h3 className="text-xl font-bold">{achievement.title}</h3>
                       <p className="text-sm text-blue-200">{achievement.description}</p>
                     </div>
                   </div>
@@ -85,10 +77,10 @@ export default function AchievementsPage() {
                   <div className="mb-1 flex justify-between text-xs">
                     <span>Progress</span>
                     <span>
-                      {achievement.progress} / {achievement.maxProgress}
+                      {achievement.progress} / {achievement.condition.threshold}
                     </span>
                   </div>
-                  <Progress value={(achievement.progress / achievement.maxProgress) * 100} className="h-2" />
+                  <Progress value={(achievement.progress / achievement.condition.threshold) * 100} className="h-2" />
                 </div>
 
                 {achievement.unlocked && achievement.unlockedAt && (
@@ -99,7 +91,7 @@ export default function AchievementsPage() {
 
                 {!achievement.unlocked && (
                   <div className="mt-3 text-xs text-blue-200">
-                    {achievement.maxProgress - achievement.progress} more to unlock
+                    {achievement.condition.threshold - achievement.progress} more to unlock
                   </div>
                 )}
               </div>

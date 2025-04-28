@@ -5,23 +5,24 @@ import { useState } from "react";
 
 import BonusFeaturesDashboard from "@/components/BonusFeaturesDashboard";
 import GameStats from "@/components/GameStats";
-import Header from "@/components/Header";
+// import Header from "@/components/Header";
 import KnowThyselfWizard from "@/components/KnowThyselfWizard";
+import RewardCard from "@/components/RewardCard";
 import { Button } from "@/components/ui/button";
-import { useAppContext } from "@/contexts/AppContext";
 
 import ProgressiveLoadDetails from "../../components/ProgressiveLoadDetails";
 import TimeContextDisplay from "../../components/TimeContextDisplay";
+import { useGame } from "../../contexts/GameContext";
 
 export default function DashboardPage() {
-  const { user, habits, rewards } = useAppContext();
+  const { user, habits, rewards } = useGame();
   const [showWizard, setShowWizard] = useState(false);
+
+  if (!user || !habits || !rewards) return <div>Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-900 to-purple-900 text-white">
       <div className="container mx-auto px-4 py-8">
-        <Header />
-
         <main className="space-y-8">
           <div className="text-center">
             <h1 className="text-3xl font-bold">Welcome to Your LifeQuest Dashboard</h1>
@@ -76,19 +77,10 @@ export default function DashboardPage() {
 
             <div className="rounded-lg border border-blue-800 bg-blue-950/30 p-6">
               <h2 className="mb-4 text-xl font-bold">Available Rewards</h2>
-              {rewards.length > 0 ? (
+              {rewards ? (
                 <div className="space-y-3">
                   {rewards.slice(0, 3).map((reward) => (
-                    <div key={reward.id} className="rounded-lg bg-blue-900/30 p-4">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold">{reward.name}</h3>
-                        <span className="font-bold text-yellow-300">{reward.cost} pts</span>
-                      </div>
-                      <p className="mt-1 text-sm text-blue-200">{reward.description}</p>
-                      <div className="mt-2 text-right">
-                        <span className="rounded-full bg-blue-500/20 px-2 py-1 text-xs">{reward.category}</span>
-                      </div>
-                    </div>
+                    <RewardCard key={reward.id} reward={reward} userPoints={user.points} />
                   ))}
                   <div className="text-center">
                     <Link href="/rewards">

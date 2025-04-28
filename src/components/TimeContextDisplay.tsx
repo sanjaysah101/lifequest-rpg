@@ -2,10 +2,10 @@ import { useEffect, useState } from "react";
 
 import { ClockIcon } from "lucide-react";
 
-import { useAppContext } from "@/contexts/AppContext";
+import { useGame } from "../contexts/GameContext";
 
 export default function TimeContextDisplay() {
-  const { user } = useAppContext();
+  const { user } = useGame();
   const [currentTime, setCurrentTime] = useState(new Date());
   const [activeTimeWindow, setActiveTimeWindow] = useState<any>(null);
 
@@ -21,6 +21,7 @@ export default function TimeContextDisplay() {
   // Check if current time is in an optimized window
   useEffect(() => {
     const hour = currentTime.getHours();
+    if (!user) return;
 
     if (user.timeContext && user.timeContext.optimizedHours) {
       const activeWindow = user.timeContext.optimizedHours.find(
@@ -48,7 +49,7 @@ export default function TimeContextDisplay() {
         setActiveTimeWindow(null);
       }
     }
-  }, [currentTime, user.timeContext]);
+  }, [currentTime, user]);
 
   // Format time window
   const formatTimeWindow = (start: number, end: number) => {
@@ -60,6 +61,8 @@ export default function TimeContextDisplay() {
 
     return `${formatHour(start)} - ${formatHour(end)}`;
   };
+
+  if (!user) return null;
 
   return (
     <div className="rounded-lg border border-blue-800 bg-blue-950/30 p-6">

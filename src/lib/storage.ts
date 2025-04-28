@@ -62,7 +62,7 @@ export function saveHabits(habits: Habit[]) {
   saveToStorage<Habit[]>(STORAGE_KEYS.habits, habits);
 }
 
-export function loadHabits(): Habit[] {
+export function loadHabits(): Habit[] | null {
   return loadFromStorage<Habit[]>(STORAGE_KEYS.habits) || [];
 }
 
@@ -71,7 +71,7 @@ export function saveRewards(rewards: Reward[]) {
   saveToStorage<Reward[]>(STORAGE_KEYS.rewards, rewards);
 }
 
-export function loadRewards(): Reward[] {
+export function loadRewards(): Reward[] | null {
   return loadFromStorage<Reward[]>(STORAGE_KEYS.rewards) || [];
 }
 
@@ -98,7 +98,7 @@ export function saveAchievements(achievements: Achievement[]) {
   saveToStorage<Achievement[]>(STORAGE_KEYS.achievements, achievements);
 }
 
-export function loadAchievements(): Achievement[] {
+export function loadAchievements(): Achievement[] | null {
   return loadFromStorage<Achievement[]>(STORAGE_KEYS.achievements) || [];
 }
 

@@ -1,8 +1,11 @@
 import { Progress } from "@/components/ui/progress";
-import { useAppContext } from "@/contexts/AppContext";
+
+import { useGame } from "../contexts/GameContext";
 
 export default function ProgressiveLoadDetails() {
-  const { user, habits } = useAppContext();
+  const { user, habits } = useGame();
+
+  if (!user || !habits) return null;
 
   // Calculate consistency metrics
   const consistentHabits = habits.filter((habit) => habit.streak >= 3).length;

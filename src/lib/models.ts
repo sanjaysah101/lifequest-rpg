@@ -16,6 +16,7 @@ export enum HabitCategory {
 }
 
 export enum RewardCategory {
+  Digital = "Digital",
   Entertainment = "Entertainment",
   FoodAndDrink = "Food & Drink",
   Rest = "Rest",
@@ -65,13 +66,25 @@ export interface ChainReactionStatus {
   lastCompletedAt: string | null;
 }
 
+export enum DifficultyPreference {
+  Easy = "Easy",
+  Moderate = "Moderate",
+  Hard = "Hard",
+}
+
+export enum RewardPreference {
+  Balanced = "Balanced",
+  Delayed = "Delayed",
+  Instant = "Instant",
+}
+
 export interface UserPreferences {
   wakeTime: string; // e.g., "07:00"
   sleepTime: string; // e.g., "22:00"
   focusArea: FocusArea;
   motivation: MotivationType;
-  difficultyPreference: "easy" | "moderate" | "hard";
-  rewardPreference: "balanced" | "delayed" | "instant";
+  difficultyPreference: DifficultyPreference;
+  rewardPreference: RewardPreference;
 }
 
 export interface ProgressiveLoadSettings {
@@ -127,109 +140,6 @@ export interface GameState {
   currentWorld: string;
 }
 
-// --- Default Data ---
-
-export const defaultUser: User = {
-  id: "user-1",
-  name: "Adventurer",
-  createdAt: new Date().toISOString(),
-  lastLogin: null,
-  level: 1,
-  experience: 0,
-  nextLevelAt: 100,
-  points: 0,
-  streakDays: 0,
-  chainReaction: {
-    count: 0,
-    lastCompletedAt: null,
-  },
-  preferences: {
-    wakeTime: "07:00",
-    sleepTime: "22:00",
-    focusArea: FocusArea.Productivity,
-    motivation: MotivationType.Achievement,
-    difficultyPreference: "moderate",
-    rewardPreference: "balanced",
-  },
-  progressiveLoad: {
-    difficulty: 1.0,
-    reward: 1.0,
-  },
-  timeContext: {
-    wakeTime: "07:00",
-    sleepTime: "22:00",
-    optimizedHours: [
-      {
-        start: 8,
-        end: 10,
-        bonus: 0.2,
-        type: "productivity",
-      },
-      {
-        start: 14,
-        end: 16,
-        bonus: 0.15,
-        type: "focus",
-      },
-    ],
-  },
-};
-
-export const defaultHabits: Habit[] = [
-  {
-    id: "habit-1",
-    name: "Morning Meditation",
-    description: "10 minutes of mindfulness to start the day",
-    frequency: Frequency.Daily,
-    points: 10,
-    streak: 0,
-    category: HabitCategory.Wellness,
-    createdAt: new Date().toISOString(),
-    completedDates: [],
-  },
-  {
-    id: "habit-2",
-    name: "Exercise",
-    description: "30 minutes of physical activity",
-    frequency: Frequency.Daily,
-    points: 15,
-    streak: 0,
-    category: HabitCategory.Health,
-    createdAt: new Date().toISOString(),
-    completedDates: [],
-  },
-];
-
-export const defaultRewards: Reward[] = [
-  {
-    id: "reward-1",
-    name: "30min Gaming Break",
-    description: "Take a break and play your favorite game",
-    cost: 50,
-    category: RewardCategory.Entertainment,
-    createdAt: new Date().toISOString(),
-    redeemedDates: [],
-  },
-  {
-    id: "reward-2",
-    name: "Coffee Shop Visit",
-    description: "Treat yourself to a nice coffee",
-    cost: 75,
-    category: RewardCategory.FoodAndDrink,
-    createdAt: new Date().toISOString(),
-    redeemedDates: [],
-  },
-];
-
-export const defaultGameState: GameState = {
-  characterLevel: 1,
-  achievements: [],
-  lastPlayed: new Date().toISOString(),
-  worldsDiscovered: ["forest"],
-  questsCompleted: [],
-  currentWorld: "forest",
-};
-
 // Economy Engine Logic
 
 export interface EconomyContext {
@@ -269,55 +179,18 @@ export interface Quest {
   completedAt: string | null;
 }
 
-// Example default quests
-export const defaultQuests: Quest[] = [
-  {
-    id: "quest-1",
-    title: "Start Strong!",
-    description: "Complete 3 habits today.",
-    type: QuestType.Daily,
-    targetHabits: [],
-    goal: 3,
-    rewardPoints: 50,
-    isCompleted: false,
-    createdAt: new Date().toISOString(),
-    completedAt: null,
-  },
-];
-
 export interface Achievement {
   id: string;
   title: string;
   description: string;
-  unlockedAt: string | null;
+  icon: string;
+  unlocked: boolean;
+  progress: number;
+  unlockedAt?: string;
   condition: AchievementCondition;
 }
 
 export interface AchievementCondition {
-  type: "habitCompletion" | "streak" | "pointsEarned" | "questCompleted";
+  type: "habits" | "rewards" | "system" | "special";
   threshold: number;
 }
-
-// Example default achievements
-export const defaultAchievements: Achievement[] = [
-  {
-    id: "achievement-1",
-    title: "First Step",
-    description: "Complete your first habit!",
-    unlockedAt: null,
-    condition: {
-      type: "habitCompletion",
-      threshold: 1,
-    },
-  },
-  {
-    id: "achievement-2",
-    title: "Consistency King",
-    description: "Maintain a 7-day streak!",
-    unlockedAt: null,
-    condition: {
-      type: "streak",
-      threshold: 7,
-    },
-  },
-];

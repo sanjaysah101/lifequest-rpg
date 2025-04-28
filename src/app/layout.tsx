@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
-import { AppProvider } from "@/contexts/AppContext";
-
+import Header from "../components/Header";
+import { GameProvider } from "../contexts/GameContext";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -28,7 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AppProvider>{children}</AppProvider>
+        <GameProvider>
+          <div className="min-h-screen bg-gradient-to-b from-blue-900 to-purple-900 text-white">
+            <Header />
+            {children}
+          </div>
+        </GameProvider>
       </body>
     </html>
   );

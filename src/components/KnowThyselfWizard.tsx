@@ -10,103 +10,53 @@ import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { useAppContext } from "@/contexts/AppContext";
 
-interface WizardFormData {
-  name: string;
-  wakeTime: string;
-  sleepTime: string;
-  focusArea: string;
-  motivation: string;
-  difficultyPreference: string;
-  rewardPreference: string;
-}
+import { useGame } from "../contexts/GameContext";
+import { DifficultyPreference, FocusArea, MotivationType, RewardPreference, User } from "../lib/models";
+
+const focusAreaOptions = Object.values(FocusArea).map((area) => ({
+  value: area,
+  label: area,
+}));
+
+const motivationTypeOptions = Object.values(MotivationType).map((area) => ({
+  value: area,
+  label: area,
+}));
+
+const difficultyPreferenceOptions = Object.values(DifficultyPreference).map((area) => ({
+  value: area,
+  label: area,
+}));
+
+const rewardPreferencesOptions = Object.values(RewardPreference).map((area) => ({
+  value: area,
+  label: area,
+}));
 
 export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const { user, updateUser } = useAppContext();
+  const { user, setUser } = useGame();
   const [step, setStep] = useState(1);
-  const { register, handleSubmit, watch, formState } = useForm<WizardFormData>({
-    defaultValues: {
-      name: user.name || "Adventurer",
-      wakeTime: user.preferences?.wakeTime || "07:00",
-      sleepTime: user.preferences?.sleepTime || "22:00",
-      focusArea: user.preferences?.focusArea || "productivity",
-      motivation: user.preferences?.motivation || "achievement",
-      difficultyPreference: user.preferences?.difficultyPreference || "moderate",
-      rewardPreference: user.preferences?.rewardPreference || "balanced",
-    },
+
+  const { register, handleSubmit, watch } = useForm<User>({
+    defaultValues: user ?? {},
   });
 
   const totalSteps = 5;
 
-  const onSubmit = (data: WizardFormData) => {
+  const onSubmit = (data: User) => {
     // Update user with personalized settings
     const updatedUser = {
       ...user,
-      name: data.name,
-      preferences: {
-        wakeTime: data.wakeTime,
-        sleepTime: data.sleepTime,
-        focusArea: data.focusArea,
-        motivation: data.motivation,
-        difficultyPreference: data.difficultyPreference,
-        rewardPreference: data.rewardPreference,
-      },
-      // Initialize the progressive load system based on preferences
-      progressiveLoad: {
-        difficulty:
-          data.difficultyPreference === "challenging" ? 1.2 : data.difficultyPreference === "moderate" ? 1.0 : 0.8,
-        reward: data.rewardPreference === "high" ? 1.2 : data.rewardPreference === "balanced" ? 1.0 : 0.8,
-      },
-      // Initialize time context settings based on wake/sleep times
-      timeContext: {
-        wakeTime: data.wakeTime,
-        sleepTime: data.sleepTime,
-        optimizedHours: calculateOptimizedHours(data.wakeTime, data.sleepTime, data.focusArea),
-      },
+      ...data,
     };
 
-    // Save to localStorage directly as a backup
-    localStorage.setItem("lifequest_user_preferences", JSON.stringify(updatedUser.preferences));
-    localStorage.setItem("lifequest_user_progressiveLoad", JSON.stringify(updatedUser.progressiveLoad));
-    localStorage.setItem("lifequest_user_timeContext", JSON.stringify(updatedUser.timeContext));
-
-    updateUser(updatedUser);
+    setUser(updatedUser);
     onClose();
   };
-  // Calculate optimal hours based on user's schedule and preferences
-  const calculateOptimizedHours = (wakeTime: string, sleepTime: string, focusArea: string) => {
-    const optimizedHours = [];
-    const wake = parseInt(wakeTime.split(":")[0]);
-    const sleep = parseInt(sleepTime.split(":")[0]);
 
-    // Morning productivity window (2 hours after waking)
-    optimizedHours.push({
-      start: wake + 1,
-      end: wake + 3,
-      bonus: 0.2,
-      type: focusArea === "productivity" ? "productivity" : "focus",
-    });
-
-    // Mid-day window
-    const midDay = Math.floor((wake + sleep) / 2);
-    optimizedHours.push({
-      start: midDay - 1,
-      end: midDay + 1,
-      bonus: 0.15,
-      type: focusArea === "health" ? "health" : "energy",
-    });
-
-    // Evening window (based on focus area)
-    const eveningStart = Math.max(17, sleep - 4);
-    optimizedHours.push({
-      start: eveningStart,
-      end: eveningStart + 2,
-      bonus: 0.18,
-      type: focusArea === "mindfulness" ? "mindfulness" : "reflection",
-    });
-
-    return optimizedHours;
+  const handleComplete = () => {
+    handleSubmit(onSubmit)();
   };
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, totalSteps));
@@ -114,7 +64,7 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="border-none bg-gradient-to-b from-blue-900 to-purple-900 text-white sm:max-w-[500px]">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white">Know Thyself Wizard</DialogTitle>
         </DialogHeader>
@@ -129,12 +79,12 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
           <Progress value={(step / totalSteps) * 100} className="h-2" />
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form>
           {step === 1 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Welcome to Your Personal Economy Setup</h3>
               <p className="text-blue-200">
-                Let's calibrate your system to match your personal goals and rhythms. This will help optimize your
+                Let&apos;s calibrate your system to match your personal goals and rhythms. This will help optimize your
                 rewards and bonuses.
               </p>
 
@@ -144,6 +94,7 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                   id="name"
                   placeholder="Your name"
                   className="border-white/20 bg-black/30 text-white"
+                  required
                   {...register("name", { required: true })}
                 />
               </div>
@@ -164,7 +115,7 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                     id="wakeTime"
                     type="time"
                     className="border-white/20 bg-black/30 text-white"
-                    {...register("wakeTime", { required: true })}
+                    {...register("preferences.wakeTime", { required: true })}
                   />
                 </div>
 
@@ -174,7 +125,7 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                     id="sleepTime"
                     type="time"
                     className="border-white/20 bg-black/30 text-white"
-                    {...register("sleepTime", { required: true })}
+                    {...register("preferences.sleepTime", { required: true })}
                   />
                 </div>
               </div>
@@ -190,15 +141,9 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                 <Label htmlFor="focusArea">What area do you most want to improve?</Label>
                 <FormSelect
                   id="focusArea"
-                  options={[
-                    { value: "health", label: "Physical Health" },
-                    { value: "productivity", label: "Productivity" },
-                    { value: "learning", label: "Learning & Growth" },
-                    { value: "mindfulness", label: "Mindfulness & Mental Health" },
-                    { value: "social", label: "Social Connections" },
-                  ]}
+                  options={focusAreaOptions}
                   className="border-white/20 bg-black/30 text-white"
-                  {...register("focusArea", { required: true })}
+                  {...register("preferences.focusArea", { required: true })}
                 />
               </div>
 
@@ -206,15 +151,9 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                 <Label htmlFor="motivation">What motivates you most?</Label>
                 <FormSelect
                   id="motivation"
-                  options={[
-                    { value: "achievement", label: "Sense of Achievement" },
-                    { value: "growth", label: "Personal Growth" },
-                    { value: "competition", label: "Competition with Others" },
-                    { value: "rewards", label: "Tangible Rewards" },
-                    { value: "wellbeing", label: "Overall Wellbeing" },
-                  ]}
+                  options={motivationTypeOptions}
                   className="border-white/20 bg-black/30 text-white"
-                  {...register("motivation", { required: true })}
+                  {...register("preferences.motivation", { required: true })}
                 />
               </div>
             </div>
@@ -223,19 +162,15 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
           {step === 4 && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Progressive Load Calibration</h3>
-              <p className="text-blue-200">Let's calibrate how challenges and rewards scale as you improve.</p>
+              <p className="text-blue-200">Let&apos;s calibrate how challenges and rewards scale as you improve.</p>
 
               <div className="grid gap-2">
-                <Label htmlFor="difficultyPreference">How challenging do you want your habits to be?</Label>
+                <Label htmlFor="preferences.difficultyPreference">How challenging do you want your habits to be?</Label>
                 <FormSelect
-                  id="difficultyPreference"
-                  options={[
-                    { value: "gentle", label: "Gentle - I prefer easier, consistent progress" },
-                    { value: "moderate", label: "Moderate - Balanced difficulty" },
-                    { value: "challenging", label: "Challenging - I thrive under pressure" },
-                  ]}
+                  id="preferences.difficultyPreference"
+                  options={difficultyPreferenceOptions}
                   className="border-white/20 bg-black/30 text-white"
-                  {...register("difficultyPreference", { required: true })}
+                  {...register("preferences.difficultyPreference", { required: true })}
                 />
               </div>
 
@@ -243,13 +178,9 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                 <Label htmlFor="rewardPreference">How would you like rewards to scale?</Label>
                 <FormSelect
                   id="rewardPreference"
-                  options={[
-                    { value: "conservative", label: "Conservative - Smaller, more frequent rewards" },
-                    { value: "balanced", label: "Balanced - Moderate rewards" },
-                    { value: "high", label: "High - Larger rewards for bigger achievements" },
-                  ]}
+                  options={rewardPreferencesOptions}
                   className="border-white/20 bg-black/30 text-white"
-                  {...register("rewardPreference", { required: true })}
+                  {...register("preferences.rewardPreference", { required: true })}
                 />
               </div>
             </div>
@@ -259,7 +190,7 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Ready to Begin Your Journey</h3>
               <p className="text-blue-200">
-                Based on your preferences, we've calibrated your personal economy system. Your habits, rewards, and
+                Based on your preferences, we&apos;ve calibrated your personal economy system. Your habits, rewards, and
                 bonuses will now be optimized for your unique profile.
               </p>
 
@@ -270,19 +201,23 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/20 text-green-400">
                       ✓
                     </span>
-                    <span>Time Context: Optimized for your {watch("focusArea")} focus and daily schedule</span>
+                    <span>
+                      Time Context: Optimized for your {watch("preferences.focusArea")} focus and daily schedule
+                    </span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/20 text-green-400">
                       ✓
                     </span>
-                    <span>Progressive Load: Tailored to your {watch("difficultyPreference")} preference</span>
+                    <span>
+                      Progressive Load: Tailored to your {watch("preferences.difficultyPreference")} preference
+                    </span>
                   </li>
                   <li className="flex items-center gap-2">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-green-500/20 text-green-400">
                       ✓
                     </span>
-                    <span>Reward System: Calibrated to your {watch("rewardPreference")} reward style</span>
+                    <span>Reward System: Calibrated to your {watch("preferences.rewardPreference")} reward style</span>
                   </li>
                 </ul>
               </div>
@@ -305,7 +240,7 @@ export default function KnowThyselfWizard({ isOpen, onClose }: { isOpen: boolean
                 Next
               </Button>
             ) : (
-              <Button type="submit" className="bg-green-600 hover:bg-green-700">
+              <Button type="button" onClick={handleComplete} className="bg-green-600 hover:bg-green-700">
                 Complete Setup
               </Button>
             )}

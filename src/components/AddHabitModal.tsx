@@ -1,65 +1,57 @@
 "use client";
 
-import { useState } from "react";
+import { useId } from "react";
+
+import { useForm } from "react-hook-form";
 
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { FormSelect } from "@/components/ui/form-select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useAppContext } from "@/contexts/AppContext";
 
-import { Habit } from "../lib/models";
+import { useGame } from "../contexts/GameContext";
+import { Frequency, Habit, HabitCategory } from "../lib/models";
 
 interface AddHabitModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+const categoryOptions = Object.values(HabitCategory).map((category) => ({
+  value: category,
+  label: category,
+}));
+
+const frequencyOptions = Object.values(Frequency).map((category) => ({
+  value: category,
+  label: category,
+}));
+
 export default function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
-  const { addHabit } = useAppContext();
-  const [habitData, setHabitData] = useState<Omit<Habit, "id" | "createdAt" | "completedDates" | "streak">>({
-    name: "",
-    description: "",
-    frequency: "Daily",
-    points: 10,
-    category: "Wellness",
-  });
+  const { setHabits, habits } = useGame();
+  const newId = useId();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setHabitData((prev) => ({
-      ...prev,
-      [name]: name === "points" ? parseInt(value) : value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    addHabit(habitData);
-    setHabitData({
+  const { register, handleSubmit, reset } = useForm<Habit>({
+    defaultValues: {
       name: "",
       description: "",
-      frequency: "Daily",
+      frequency: Frequency.Daily,
       points: 10,
-      category: "Wellness",
-    });
+      category: HabitCategory.Wellness,
+      completedDates: [],
+      createdAt: new Date().toISOString(),
+      id: newId,
+      streak: 0,
+    },
+  });
+
+  const onSubmit = (data: Habit) => {
+    const updatedHabits: Habit[] = habits ? [...habits, data] : [data];
+    setHabits(updatedHabits);
     onClose();
+    reset();
   };
-
-  const frequencyOptions = [
-    { value: "Daily", label: "Daily" },
-    { value: "Weekdays", label: "Weekdays" },
-    { value: "Weekly", label: "Weekly" },
-    { value: "Monthly", label: "Monthly" },
-  ];
-
-  const categoryOptions = [
-    { value: "Wellness", label: "Wellness" },
-    { value: "Health", label: "Health" },
-    { value: "Growth", label: "Growth" },
-    { value: "Productivity", label: "Productivity" },
-  ];
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -67,7 +59,7 @@ export default function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-white">Add New Habit</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
               <Label htmlFor="name" className="text-blue-200">
@@ -75,11 +67,9 @@ export default function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
               </Label>
               <Input
                 id="name"
-                name="name"
-                value={habitData.name}
-                onChange={handleChange}
-                required
                 className="border-white/20 bg-black/30 text-white"
+                required
+                {...register("name", { required: true })}
               />
             </div>
             <div className="grid gap-2">
@@ -88,11 +78,9 @@ export default function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
               </Label>
               <Input
                 id="description"
-                name="description"
-                value={habitData.description}
-                onChange={handleChange}
-                required
                 className="border-white/20 bg-black/30 text-white"
+                required
+                {...register("description", { required: true })}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -102,11 +90,9 @@ export default function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
                 </Label>
                 <FormSelect
                   id="frequency"
-                  name="frequency"
-                  value={habitData.frequency}
-                  onChange={handleChange}
                   options={frequencyOptions}
                   className="border-white/20 bg-black/30 text-white"
+                  {...register("frequency", { required: true })}
                 />
               </div>
               <div className="grid gap-2">
@@ -115,13 +101,11 @@ export default function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
                 </Label>
                 <Input
                   id="points"
-                  name="points"
                   type="number"
                   min="1"
-                  value={habitData.points}
-                  onChange={handleChange}
-                  required
                   className="border-white/20 bg-black/30 text-white"
+                  required
+                  {...register("points", { required: true, valueAsNumber: true, min: 1 })}
                 />
               </div>
             </div>
@@ -131,11 +115,9 @@ export default function AddHabitModal({ isOpen, onClose }: AddHabitModalProps) {
               </Label>
               <FormSelect
                 id="category"
-                name="category"
-                value={habitData.category}
-                onChange={handleChange}
                 options={categoryOptions}
                 className="border-white/20 bg-black/30 text-white"
+                {...register("category", { required: true })}
               />
             </div>
           </div>
