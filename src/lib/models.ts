@@ -138,6 +138,7 @@ export interface GameState {
   worldsDiscovered: string[];
   questsCompleted: string[];
   currentWorld: string;
+  isGameInitialized: boolean;
 }
 
 // Economy Engine Logic
@@ -159,10 +160,11 @@ export function calculateFinalPoints(context: EconomyContext): number {
   return Math.round(withChainBonus);
 }
 
+// World and Quest related interfaces
 export enum QuestType {
   Daily = "Daily",
   Weekly = "Weekly",
-  Special = "Special",
+  OneTime = "OneTime",
 }
 
 export interface Quest {
@@ -170,13 +172,40 @@ export interface Quest {
   title: string;
   description: string;
   type: QuestType;
-  targetHabits: string[]; // habit IDs linked to the quest
-  goal: number; // e.g., "Complete X habits"
+  targetHabits: string[]; // IDs of related habits
+  goal: number;
   rewardPoints: number;
-  bonusRewards?: string[]; // reward IDs or achievement IDs
   isCompleted: boolean;
   createdAt: string;
   completedAt: string | null;
+}
+
+export interface World {
+  id: string;
+  name: string;
+  description: string;
+  background: string;
+  color: string;
+  unlockRequirement: number;
+  quests: WorldQuest[];
+}
+
+export interface WorldQuest {
+  id: string;
+  title: string;
+  description: string;
+  task: string;
+  points: number;
+  habitCategory: string;
+}
+
+export interface GameState {
+  characterLevel: number;
+  achievements: string[];
+  lastPlayed: string;
+  worldsDiscovered: string[];
+  questsCompleted: string[];
+  currentWorld: string;
 }
 
 export interface Achievement {

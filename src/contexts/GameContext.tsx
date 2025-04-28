@@ -1,22 +1,14 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 
+import { Achievement, GameState, Habit, Reward, User } from "@/lib/models";
+import { loadAchievements, loadRewards, saveGameState, saveHabits, saveRewards, saveUser } from "@/lib/storage";
 import { discoverWorld, getGameState } from "@/services/gameService";
 import { addHabit, completeHabit as completeHabitService, getHabits } from "@/services/habitService";
 import { redeemReward } from "@/services/rewardService";
 import { addExperience, getUser, incrementStreak, updateUser } from "@/services/userService";
 
-import { User } from "../lib/models";
-import {
-  loadAchievements,
-  loadHabits,
-  loadRewards,
-  saveGameState,
-  saveHabits,
-  saveRewards,
-  saveUser,
-} from "../lib/storage";
 import { checkAchievements } from "../services/achievementService";
 import { initializeDefaults } from "../services/initService";
 
@@ -30,12 +22,10 @@ interface GameContextType {
   rewards: ReturnType<typeof loadRewards>;
   setRewards: (rewards: ReturnType<typeof loadRewards>) => void;
   achievements: ReturnType<typeof loadAchievements>;
-
   isLoading: boolean;
   reload: () => void;
-  // Expose core actions
   addHabit: typeof addHabit;
-  completeHabit: typeof completeHabitService;
+  completeHabit: (habitId: string) => void;
   addExperience: typeof addExperience;
   incrementStreak: typeof incrementStreak;
   redeemReward: typeof redeemReward;
@@ -45,48 +35,56 @@ interface GameContextType {
 const GameContext = createContext<GameContextType | undefined>(undefined);
 
 export const GameProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<ReturnType<typeof getUser>>(getUser());
-  const [habits, setHabits] = useState<ReturnType<typeof loadHabits>>(getHabits());
-  const [gameState, setGameState] = useState(getGameState());
-  const [rewards, setRewards] = useState<ReturnType<typeof loadRewards>>(loadRewards());
+  const [user, setUser] = useState<User | null>(null);
+  const [habits, setHabits] = useState<Habit[] | null>(null);
+  const [gameState, setGameState] = useState<GameState | null>(null);
+  const [rewards, setRewards] = useState<Reward[] | null>(null);
+  const [achievements, setAchievements] = useState<Achievement[] | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [achievements, setAchievements] = useState<ReturnType<typeof loadAchievements>>(loadAchievements());
+
+  const reload = useCallback(() => {
+    setUser(getUser());
+    setHabits(getHabits());
+    setGameState(getGameState());
+    setRewards(loadRewards());
+  }, []);
 
   useEffect(() => {
     setIsLoading(true);
-    if (!user || !habits || !gameState || !rewards) {
-      initializeDefaults();
-    }
+    reload();
     setIsLoading(false);
-  }, [gameState, habits, rewards, user]);
-
-  const reload = () => {
-    const user = getUser();
-    const habits = getHabits();
-    const gameState = getGameState();
-    const rewards = loadRewards();
-    const achievements = loadAchievements();
-
-    // Update all state variables at the same time to avoid race conditions and ensure consistency
-    setUser(user);
-    setHabits(habits);
-    setGameState(gameState);
-    setRewards(rewards);
-    setAchievements(achievements);
-  };
+  }, [reload]);
 
   useEffect(() => {
-    reload();
-  }, []);
+    setIsLoading(true);
+    const gameState = getGameState();
+    if (!gameState) {
+      initializeDefaults();
+      reload();
+    }
+    setIsLoading(false);
+  }, [user, habits, gameState, rewards, achievements, reload]);
+
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      // eslint-disable-next-line no-console
+      console.log("Detected localStorage change:", e.key);
+      reload(); // 🔥 auto-reload when localStorage updates
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
+  }, [reload]); // ✅ reload when storage changes
 
   useEffect(() => {
     if (user) saveUser(user);
   }, [user]);
 
   useEffect(() => {
-    if (!habits?.length) return;
-
-    if (habits) saveHabits(habits);
+    if (habits && habits.length) saveHabits(habits);
   }, [habits]);
 
   useEffect(() => {
@@ -94,24 +92,22 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
   }, [gameState]);
 
   useEffect(() => {
-    if (!rewards?.length) return;
-
-    saveRewards(rewards);
+    if (rewards && rewards.length) saveRewards(rewards);
   }, [rewards]);
 
   useEffect(() => {
-    console.log({ user, habits, rewards });
-    if (!user || !habits || !rewards) return;
-
-    checkAchievements(user, habits, rewards);
+    if (user && habits && rewards && habits.length && rewards.length) {
+      checkAchievements(user, habits, rewards);
+      setAchievements(loadAchievements());
+    }
   }, [user, habits, rewards]);
 
   const completeHabit = (habitId: string) => {
-    if (!user) return;
+    if (!user || !habits) return;
     completeHabitService(habitId);
 
     // Find the habit to get its points value
-    const habit = habits?.find((h) => h.id === habitId);
+    const habit = habits.find((h) => h.id === habitId);
     const pointsToAdd = habit?.points || 10; // Default to 10 if not found
 
     // Add experience based on the habit's points
@@ -130,16 +126,16 @@ export const GameProvider = ({ children }: { children: React.ReactNode }) => {
     <GameContext.Provider
       value={{
         user,
-        habits,
-        gameState,
-        isLoading,
-        rewards,
-        achievements,
-        reload,
         setUser,
-        setRewards,
+        habits,
         setHabits,
+        gameState,
         setGameState,
+        rewards,
+        setRewards,
+        achievements,
+        isLoading,
+        reload,
         addHabit,
         completeHabit,
         addExperience,

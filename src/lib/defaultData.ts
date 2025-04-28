@@ -114,6 +114,7 @@ export const defaultGameState: GameState = {
   worldsDiscovered: ["forest"],
   questsCompleted: [],
   currentWorld: "forest",
+  isGameInitialized: true,
 };
 
 export const defaultQuests: Quest[] = [
