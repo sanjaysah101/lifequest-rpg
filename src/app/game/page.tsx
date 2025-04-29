@@ -379,9 +379,19 @@ export default function GamePage() {
             }
 
             // Add overlap detection for collecting items
-            this.physics.add.overlap(player, collectibles, collectItem, null, this);
+            this.physics.add.overlap(
+              player,
+              collectibles,
+              collectItem as Phaser.Types.Physics.Arcade.ArcadePhysicsCallback,
+              undefined,
+              this
+            );
 
-            function collectItem(player: Phaser.Physics.Arcade.Sprite, item: Phaser.Physics.Arcade.Image) {
+            function collectItem(
+              this: Phaser.Scene,
+              player: Phaser.Types.Physics.Arcade.GameObjectWithBody,
+              item: Phaser.Physics.Arcade.Image
+            ) {
               item.disableBody(true, true);
 
               // Get the point value from the item
@@ -524,7 +534,9 @@ export default function GamePage() {
             }
 
             // Add keyboard controls
-            const cursors = this.input.keyboard.createCursorKeys();
+            const cursors = this.input.keyboard?.createCursorKeys();
+
+            if (!cursors) return;
 
             // Update function to handle player movement
             this.update = function () {

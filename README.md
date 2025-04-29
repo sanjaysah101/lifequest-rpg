@@ -2,6 +2,14 @@
 
 LifeQuest RPG is an innovative web application that transforms daily habits into an engaging RPG experience. Here's a comprehensive overview of the project:
 
+![LifeQuest Dashboard](public/lifequest-dashboard.png)
+![LifeQuest Dashboard](public/lifequest-dashboard-II.png)
+![LifeQuest adventure](public/lifequest-adventure.png)
+
+## Demo Video
+
+[![LifeQuest RPG](https://img.youtube.com/vi/BiESPuJKr94/0.jpg)](https://youtu.be/BiESPuJKr94)
+
 ## Core Features
 
 ### 1. Habit Building System
